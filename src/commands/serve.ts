@@ -62,7 +62,7 @@ export const serveCommand = new Command()
       options = { sprites: Boolean, gamesource: Boolean, allAssets: Boolean }
     ) => {
       const dirPath = path.join(process.cwd(), path.dirname(filename));
-      console.log(options);
+
       try {
         const converter = new Converter();
         await converter.getFile(`${dirPath}/${path.basename(filename)}`);
@@ -180,9 +180,9 @@ VAR a
 
 `;
 
-        await fs.writeFile("gamedata.bitsy", options.gamesource ? txt : images);
+        await fs.writeFile("gamedata.txt", options.gamesource ? txt : images);
         console.log(
-          `DONE!! Generated a new gamedata.bitsy at:\n${dirPath}/gamedata.bitsy`
+          `DONE!! Generated a new bitsy gamedata at:\n${dirPath}/gamedata.txt`
         );
       } catch (err) {
         console.log(err);

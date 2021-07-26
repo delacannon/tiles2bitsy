@@ -1,6 +1,6 @@
 {
   "name": "tiles2bitsy",
-  "version": "1.1.0",
+  "version": "0.1.01",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "MIT",
