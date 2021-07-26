@@ -13,7 +13,7 @@ export interface CustomImage {
 const outputImages = (images: CustomImage[], options): string => {
   const { allAssets, sprites } = options;
   const types: string[] = ["TIL", "SPR", "ITM"];
-  let img;
+  let img: string = "";
 
   if (!allAssets) {
     img = `${images
@@ -26,7 +26,7 @@ ${img.str
       })
       .join("")}`;
   } else {
-    for (let i: number = 0; i < types.length - 1; i++) {
+    for (let i: number = 0; i < types.length; i++) {
       img += `${images
         .map((img) => {
           return `${types[i]} ${img.name} 
@@ -64,6 +64,7 @@ export const serveCommand = new Command()
       const dirPath = path.join(process.cwd(), path.dirname(filename));
 
       try {
+        console.log("Processing image...");
         const converter = new Converter();
         await converter.getFile(`${dirPath}/${path.basename(filename)}`);
 
