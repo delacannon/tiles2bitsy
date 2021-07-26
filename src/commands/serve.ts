@@ -3,19 +3,73 @@ import { Converter } from "../utils/Converter";
 import path from "path";
 import fs from "fs/promises";
 
+export interface CustomImage {
+  img: string;
+  imageData: ImageData;
+  name: string;
+  str: string;
+}
+
+const outputImages = (images: CustomImage[], options): string => {
+  const { allAssets, sprites } = options;
+  const types: string[] = ["TIL", "SPR", "ITM"];
+  let img;
+
+  if (!allAssets) {
+    img = `${images
+      .map((img) => {
+        return `${sprites ? `SPR` : `TIL`} ${img.name} 
+${img.str
+  .split("")
+  .map((pixel, i) => (i % 8 == 0 && i !== 0 ? `\n${pixel}` : pixel))
+  .join("")}\nNAME ${img.name.toLowerCase()}\n\n`;
+      })
+      .join("")}`;
+  } else {
+    for (let i: number = 0; i < types.length - 1; i++) {
+      img += `${images
+        .map((img) => {
+          return `${types[i]} ${img.name} 
+${img.str
+  .split("")
+  .map((pixel, i) => (i % 8 == 0 && i !== 0 ? `\n${pixel}` : pixel))
+  .join("")}\nNAME ${img.name.toLowerCase()}\n\n`;
+        })
+        .join("")}`;
+    }
+  }
+  return img;
+};
+
 export const serveCommand = new Command()
-  .command("generate [filnemane]")
+  .command("generate <filnemane>")
   .alias("g")
-  .action(async (filename) => {
-    const dirPath = path.join(process.cwd(), path.dirname(filename));
+  .option("-s, --sprites", "Create sprites (default are tiles)", false)
+  .option(
+    "-a, --all-assets",
+    "Create tiles, sprites and items from the image source",
+    false
+  )
+  .option(
+    "-n, --no-gamesource",
+    "Remove all default gamesource and output the images data only",
+    true
+  )
+  .description("Convert an image to bitsy data")
+  .action(
+    async (
+      filename,
+      options = { sprites: Boolean, gamesource: Boolean, allAssets: Boolean }
+    ) => {
+      const dirPath = path.join(process.cwd(), path.dirname(filename));
+      console.log(options);
+      try {
+        const converter = new Converter();
+        await converter.getFile(`${dirPath}/${path.basename(filename)}`);
 
-    try {
-      const converter = new Converter();
-      await converter.getFile(`${dirPath}/${path.basename(filename)}`);
+        const images = outputImages(converter.getAllImages, options);
 
-      const images = converter.getImages();
-
-      const txt = `Write your game's title here
+        const txt = `Write your game's title here
 
 # BITSY VERSION 7.6
 			
@@ -58,15 +112,7 @@ TIL a
 11111111
 NAME block
 
-${images
-  .map((img) => {
-    return `TIL ${img[2].name}
-${img[2].str
-  .split("")
-  .map((e, i) => (i % 8 == 0 && i !== 0 ? `\n${e}` : e))
-  .join("")}\nNAME ${img[2].name.toLowerCase()}\n\n`;
-  })
-  .join("")}
+${images}
 
 SPR A
 00011000
@@ -133,9 +179,14 @@ VAR a
 
 
 `;
-      await fs.writeFile("gamedata.bitsy", txt);
-      console.log("Done! Generated a new gamedata.bitsy");
-    } catch (err) {
-      console.log(err);
+
+        await fs.writeFile("gamedata.bitsy", options.gamesource ? txt : images);
+        console.log(
+          `DONE!! Generated a new gamedata.bitsy at:\n${dirPath}/gamedata.bitsy`
+        );
+      } catch (err) {
+        console.log(err);
+        process.exit(1);
+      }
     }
-  });
+  );

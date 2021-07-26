@@ -1,8 +1,9 @@
 import fs from "fs/promises";
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage, Image, Canvas, ImageData } from "canvas";
+import { CustomImage } from "../commands/serve";
 
 export class Converter {
-  images: any[];
+  images: CustomImage[] = [];
 
   async getFile(filename: string): Promise<void> {
     try {
@@ -17,11 +18,11 @@ export class Converter {
   }
 
   renderImage(image: string): void {
-    const canvas: any = createCanvas(0, 0);
+    const canvas: Canvas = createCanvas(0, 0);
     const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
 
-    loadImage(image).then((img) => {
+    loadImage(image).then((img: Image) => {
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
@@ -30,12 +31,12 @@ export class Converter {
   }
 
   crop(
-    canvas: any,
+    canvas: Canvas,
     offsetX: number,
     offsetY: number,
     width: number,
     height: number
-  ): [string, any] {
+  ): [string, ImageData] {
     const buffer = createCanvas(0, 0);
     const b_ctx = buffer.getContext("2d");
     buffer.width = width;
@@ -61,9 +62,7 @@ export class Converter {
     return [red, red + 1, red + 2, red + 3];
   }
 
-  splitImage(canvas: any): void {
-    let images: (string | any)[] = [];
-
+  splitImage(canvas: Canvas): void {
     for (let x: number = 0; x < canvas.width; x += 8) {
       for (let y: number = 0; y < canvas.height; y += 8) {
         const ref = this.crop(canvas, x, y, 8, 8);
@@ -72,21 +71,23 @@ export class Converter {
         for (let i = 0; i < d.length; i += 4) {
           var med = (d[i] + d[i + 1] + d[i + 2]) / 3;
           d[i] = d[i + 1] = d[i + 2] = med;
-          if (d[i] + d[i + 1] + d[i + 2] == 0) {
+          if (med < 128) {
             str += `0`;
           } else {
             str += `1`;
           }
         }
-        ref.push({ str, name: `IMG${images.length}`, len: str.length });
-        images.push(ref);
+        this.images.push({
+          img: ref[0],
+          imageData: ref[1],
+          name: `IMG${this.images.length}`,
+          str,
+        });
       }
     }
-
-    this.images = images;
   }
 
-  getImages() {
+  get getAllImages(): CustomImage[] {
     return this.images;
   }
 }
