@@ -4,18 +4,18 @@ import path from "path";
 import fs from "fs/promises";
 
 export const serveCommand = new Command()
-	.command("generate [filnemane]")
-	.alias("g")
-	.action(async (filename) => {
-		const dirPath = path.join(process.cwd(), path.dirname(filename));
+  .command("generate [filnemane]")
+  .alias("g")
+  .action(async (filename) => {
+    const dirPath = path.join(process.cwd(), path.dirname(filename));
 
-		try {
-			const converter = new Converter();
-			await converter.getFile(`${dirPath}/${path.basename(filename)}`);
+    try {
+      const converter = new Converter();
+      await converter.getFile(`${dirPath}/${path.basename(filename)}`);
 
-			const images = converter.getImages();
+      const images = converter.getImages();
 
-			const txt = `Write your game's title here
+      const txt = `Write your game's title here
 
 # BITSY VERSION 7.6
 			
@@ -59,14 +59,14 @@ TIL a
 NAME block
 
 ${images
-	.map((img) => {
-		return `TIL ${img[2].name}
+  .map((img) => {
+    return `TIL ${img[2].name}
 ${img[2].str
-	.split("")
-	.map((e, i) => (i % 8 == 0 && i !== 0 ? `\n${e}` : e))
-	.join("")}\nNAME ${img[2].name.toLowerCase()}\n\n`;
-	})
-	.join("")}
+  .split("")
+  .map((e, i) => (i % 8 == 0 && i !== 0 ? `\n${e}` : e))
+  .join("")}\nNAME ${img[2].name.toLowerCase()}\n\n`;
+  })
+  .join("")}
 
 SPR A
 00011000
@@ -133,8 +133,9 @@ VAR a
 
 
 `;
-			await fs.writeFile("gamedata.bitsy", txt);
-		} catch (err) {
-			console.log(err);
-		}
-	});
+      await fs.writeFile("gamedata.bitsy", txt);
+      console.log("Done! Generated a new gamedata.bitsy");
+    } catch (err) {
+      console.log(err);
+    }
+  });
